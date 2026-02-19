@@ -1,0 +1,55 @@
+# ── Python ──────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ── Virtual Environment ────────────────────
+.venv/
+venv/
+env/
+
+# ── Environment & Secrets ──────────────────
+.env
+*.env
+
+# ── Database ───────────────────────────────
+*.db
+
+# ── Logs ───────────────────────────────────
+logs/
+
+# ── Vault (encrypted) ─────────────────────
+vault/
+
+# ── Sessions & Profiles (local data) ──────
+sessions/
+profiles/
+
+# ── Reports (generated) ───────────────────
+*.pdf
+DRKagi_Report_*.pdf
+DRKagi_Export_*.md
+attack_map_*.md
+
+# ── Generated Scripts ─────────────────────
+drkagi_script.py
+drkagi_script.js
+drkagi_gen.py
+drkagi_gen.js
+drkagi_wordlist.txt
+vault_export.txt
+
+# ── IDE ────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ─────────────────────────────────────
+.DS_Store
+Thumbs.db
