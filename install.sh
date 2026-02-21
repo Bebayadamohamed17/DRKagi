@@ -10,7 +10,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 echo -e "${RED}"
 echo "██████╗ ██████╗ ██╗  ██╗ █████╗  ██████╗ ██╗"
@@ -47,9 +47,11 @@ else
     cd "$INSTALL_DIR"
 fi
 
+cd "$INSTALL_DIR"
+
 # ── Install system dependencies ────────────────────────────
 echo -e "${GREEN}[+] Installing system tools...${NC}"
-sudo apt-get update -qq
+sudo apt-get update -qq 2>/dev/null
 sudo apt-get install -y -qq python3 python3-pip python3-venv \
     nmap masscan gobuster nikto hydra sqlmap smbclient smbmap \
     enum4linux whatweb wafw00f exploitdb 2>/dev/null || true
@@ -64,50 +66,29 @@ echo -e "${GREEN}[+] Installing Python dependencies...${NC}"
 pip install --upgrade pip -q
 pip install -r requirements.txt -q
 
-# ── Create .env if not exists ─────────────────────────────
-if [ ! -f .env ]; then
-    echo -e "${YELLOW}[*] Creating .env template...${NC}"
-    cat > .env << 'EOF'
-# DRKagi Configuration
-# Get your API key at https://console.groq.com
-
-# Single key:
-GROQ_API_KEY=gsk_your_key_here
-
-# Multi-key (recommended for zero rate limits):
-# GROQ_API_KEYS=gsk_key1,gsk_key2,gsk_key3
-
-EOF
-    echo -e "${YELLOW}  Please edit ${INSTALL_DIR}/.env with your API key!${NC}"
-fi
+# ── Create directories ───────────────────────────────────
+mkdir -p logs sessions profiles plugins vault
 
 # ── Create launch script ─────────────────────────────────
 echo -e "${GREEN}[+] Creating launch command...${NC}"
-sudo tee /usr/local/bin/drkagi > /dev/null << EOF
+sudo tee /usr/local/bin/drkagi > /dev/null << LAUNCHEOF
 #!/bin/bash
 cd $INSTALL_DIR
 source .venv/bin/activate
 python3 drkagi.py "\$@"
-EOF
+LAUNCHEOF
 sudo chmod +x /usr/local/bin/drkagi
-
-# ── Create directories ───────────────────────────────────
-mkdir -p logs sessions profiles plugins vault
 
 # ── Done ─────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}═══════════════════════════════════════════════${NC}"
-echo -e "${GREEN}  DRKagi installed successfully!${NC}"
+echo -e "${GREEN}  DRKagi installed successfully!               ${NC}"
 echo -e "${GREEN}═══════════════════════════════════════════════${NC}"
 echo ""
-echo -e "  ${CYAN}1. Edit your API key:${NC}"
-echo -e "     nano ${INSTALL_DIR}/.env"
+echo -e "  ${CYAN}API keys are embedded — no setup required.${NC}"
+echo -e "  ${CYAN}Launching DRKagi now...${NC}"
 echo ""
-echo -e "  ${CYAN}2. Launch DRKagi:${NC}"
-echo -e "     drkagi"
-echo ""
-echo -e "  ${CYAN}Or run directly:${NC}"
-echo -e "     cd ${INSTALL_DIR} && source .venv/bin/activate && python3 drkagi.py"
-echo ""
-echo -e "${RED}  Remember: Authorized testing only!${NC}"
-echo ""
+sleep 1
+
+# ── Auto-launch ──────────────────────────────────────────
+exec python3 "$INSTALL_DIR/drkagi.py"
