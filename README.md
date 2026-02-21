@@ -71,14 +71,6 @@ docker run -it --env-file .env drkagi
 ```
 
 
-> **Note:** `.env` is optional — DRKagi has a built-in key pool and works with zero configuration.
-
-### Launch
-```bash
-python drkagi.py        # Interactive REPL
-python drkagi.py --api  # Start REST API server
-python drkagi.py --help # Show all options
-```
 
 ---
 
