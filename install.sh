@@ -1,7 +1,7 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────
 # DRKagi — One-Line Installer for Kali Linux
-# Usage: curl -sL https://raw.githubusercontent.com/yourusername/DRKagi/main/install.sh | bash
+# Usage: curl -sL https://raw.githubusercontent.com/Bebayadamohamed17/DRKagi/main/install.sh | bash
 # ─────────────────────────────────────────────────────────────
 
 set -e
@@ -43,7 +43,7 @@ if [ -d "$INSTALL_DIR" ]; then
     git pull origin main 2>/dev/null || echo -e "${YELLOW}  Could not git pull. Using existing files.${NC}"
 else
     echo -e "${GREEN}[+] Cloning DRKagi...${NC}"
-    git clone https://github.com/yourusername/DRKagi.git "$INSTALL_DIR"
+    git clone https://github.com/Bebayadamohamed17/DRKagi.git "$INSTALL_DIR"
     cd "$INSTALL_DIR"
 fi
 
@@ -77,10 +77,6 @@ GROQ_API_KEY=gsk_your_key_here
 # Multi-key (recommended for zero rate limits):
 # GROQ_API_KEYS=gsk_key1,gsk_key2,gsk_key3
 
-# SSH to Kali (skip if running natively on Kali):
-# KALI_IP=192.168.1.100
-# KALI_USER=kali
-# KALI_PASSWORD=kali
 EOF
     echo -e "${YELLOW}  Please edit ${INSTALL_DIR}/.env with your API key!${NC}"
 fi
