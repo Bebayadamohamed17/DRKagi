@@ -142,9 +142,7 @@ Switch between specialized AI personalities:
 
    console.print(f"[green]Sweeping {args}...[/green]")
 ```
-
 ---
-
 ## 🌐 REST API
 
 Start the API server: `python drkagi.py --api`
@@ -158,6 +156,8 @@ Start the API server: `python drkagi.py --api`
 | `/api/targets` | GET | List discovered targets |
 | `/api/simulate` | POST | Simulate attack scenario |
 | `/api/cve` | GET | CVE lookup by service |
+---
+
 
 ---
 
