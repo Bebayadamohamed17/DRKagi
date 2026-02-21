@@ -54,12 +54,12 @@ DRKagi combines **80+ security tools** with **AI reasoning** to automate reconna
 
 ### Option 1: One-Line Install (Kali Linux)
 ```bash
-curl -sL https://raw.githubusercontent.com/yourusername/DRKagi/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/Bebayadamohamed17/DRKagi/main/install.sh | bash
 ```
 
 ### Option 2: Manual Install
 ```bash
-git clone https://github.com/yourusername/DRKagi.git
+git clone https://github.com/Bebayadamohamed17/DRKagi.git
 cd DRKagi
 pip install -r requirements.txt
 ```
@@ -138,7 +138,7 @@ python drkagi.py --help # Show all options
 | `history` | Command history |
 | `export md` | Export session to Markdown |
 | `plugins` / `plugins reload` | Plugin management |
-| `mode local` / `mode ssh` | Switch execution mode |
+| `target <IP>` | Set active target (AI focuses on it) |
 | `clear` | Clear terminal |
 
 ---
@@ -210,13 +210,13 @@ DRKagi/
 ├── agent.py             # AI brain (MITRE, CoT, personas)
 ├── api_middleware.py     # Multi-key rotation + cooldown
 ├── executor.py          # Local command execution
-├── ssh_client.py        # SSH execution (optional)
+├── cve_lookup.py        # NVD CVE lookup
 ├── config.py            # Environment config
 ├── database.py          # SQLite storage
 ├── logger.py            # JSONL session logging
-├── cve_lookup.py        # NVD CVE lookup
 ├── pdf_reporter.py      # PDF report generator
 ├── dashboard.py         # Streamlit web dashboard
+├── personas.py          # 5 AI personas
 ├── profiles.py          # Engagement profiles
 ├── plugin_loader.py     # Plugin system
 ├── session_manager.py   # Session resume
