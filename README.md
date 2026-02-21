@@ -176,5 +176,4 @@ MIT License. See [LICENSE](LICENSE) for details.
   <b>Built with ❤️ for the security community</b><br>
   <i>DRKagi v0.3.0 — Think like an attacker. Act like a professional.</i>
 </p>
-*Mohamed Benayada*
----
+Mohamed Benayada
