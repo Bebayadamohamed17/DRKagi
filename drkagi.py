@@ -23,7 +23,6 @@ from agent import PentestAgent
 from logger import SessionLogger
 from database import DatabaseManager
 from cve_lookup import CVELookup
-from pdf_reporter import PDFReporter
 from profiles import ProfileManager
 from plugin_loader import PluginLoader
 from session_manager import SessionManager
@@ -163,6 +162,11 @@ def handle_show_targets(db):
 
 
 def handle_pdf_report(agent, logger):
+    try:
+        from pdf_reporter import PDFReporter
+    except ImportError:
+        console.print("[red]  reportlab not installed. Run: pip install reportlab[/red]")
+        return
     console.print("[bold green][+] Generating PDF Report...[/bold green]")
     summary = agent.summarize_session(logger.get_session_data())
     reporter = PDFReporter()
