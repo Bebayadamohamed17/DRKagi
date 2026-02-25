@@ -101,7 +101,7 @@ class PentestAgent:
             "  - Exposed .git directories: curl http://[ip]/.git/config\n"
             "  - Open MongoDB/Redis/Elasticsearch: check ports 27017, 6379, 9200\n"
             "  - SNMP community strings: snmpwalk -c public -v1 [ip]\n"
-            "After EVERY scan: run searchsploit [service] [version] to find known exploits.\n\n",
+            "After EVERY scan: run searchsploit [service] [version] to find known exploits.\n\n"
 
 
             "EXPLOITATION:\n"
