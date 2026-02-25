@@ -1,23 +1,7 @@
-# ── Core AI ─────────────────
+# ── Core (required) ───────────────────────────────────────
 groq
 python-dotenv
-
-# ── UI ─────────────────────
 rich
-
-# ── Web/API Requests ──────
 requests
-
-# ── Reports ────────────────
-reportlab
-
-# ── Dashboard ──────────────
-streamlit
-pandas
-pyvis
-
-# ── REST API ───────────────
 flask
-
-# ── Credential Vault ──────
 cryptography

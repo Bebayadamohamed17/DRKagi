@@ -85,6 +85,24 @@ class PentestAgent:
 
             "VULNERABILITY SCANNING:\n"
             "  openvas, nessus, nuclei, nmap --script vuln, searchsploit\n\n"
+            "==============================================\n"
+            "VULNERABILITY DETECTION — MANDATORY CHECKLIST\n"
+            "==============================================\n"
+            "ALWAYS check for these common vulnerabilities when scanning:\n"
+            "  - EternalBlue (MS17-010): check SMB port 445, use: nmap --script smb-vuln-ms17-010\n"
+            "  - Log4Shell (CVE-2021-44228): check any Java service, HTTP headers, JNDI injection\n"
+            "  - Apache path traversal (CVE-2021-41773): curl http://[ip]/cgi-bin/.%%2e/.%%2e/etc/passwd\n"
+            "  - Shellshock (CVE-2014-6271): check CGI scripts, curl with malicious User-Agent\n"
+            "  - Anonymous FTP: ftp [ip] with user=anonymous\n"
+            "  - Default SSH creds: admin:admin, root:root, root:toor, pi:raspberry\n"
+            "  - Default web creds: admin:admin, admin:password, admin:123456\n"
+            "  - PrintNightmare (CVE-2021-1675): check Windows Spooler port 445\n"
+            "  - ProxyLogon/ProxyShell: check Exchange ports 443, 80\n"
+            "  - Exposed .git directories: curl http://[ip]/.git/config\n"
+            "  - Open MongoDB/Redis/Elasticsearch: check ports 27017, 6379, 9200\n"
+            "  - SNMP community strings: snmpwalk -c public -v1 [ip]\n"
+            "After EVERY scan: run searchsploit [service] [version] to find known exploits.\n\n",
+
 
             "EXPLOITATION:\n"
             "  msfconsole, msfvenom, evil-winrm, crackmapexec, exploitdb, shellter, beef\n"

@@ -49,12 +49,24 @@ fi
 
 cd "$INSTALL_DIR"
 
+# ── Parse flags ──────────────────────────────────────────
+FULL_INSTALL=false
+for arg in "$@"; do
+    [ "$arg" = "--full" ] && FULL_INSTALL=true
+done
+
 # ── Install system dependencies ────────────────────────────
-echo -e "${GREEN}[+] Installing system tools...${NC}"
+echo -e "${GREEN}[+] Installing core system tools...${NC}"
 sudo apt-get update -qq 2>/dev/null
-sudo apt-get install -y -qq python3 python3-pip python3-venv \
-    nmap masscan gobuster nikto hydra sqlmap smbclient smbmap \
-    enum4linux whatweb wafw00f exploitdb 2>/dev/null || true
+sudo apt-get install -y -qq python3 python3-pip python3-venv nmap 2>/dev/null || true
+
+if $FULL_INSTALL; then
+    echo -e "${GREEN}[+] Installing full security toolkit (--full)...${NC}"
+    sudo apt-get install -y -qq \
+        masscan gobuster nikto hydra sqlmap smbclient smbmap \
+        enum4linux whatweb wafw00f exploitdb 2>/dev/null || true
+fi
+
 
 # ── Create virtual environment ────────────────────────────
 echo -e "${GREEN}[+] Setting up Python virtual environment...${NC}"

@@ -30,7 +30,7 @@ from session_manager import SessionManager
 from personas import get_persona, list_personas, DEFAULT_PERSONA
 from vault import CredentialVault
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 console = Console()
 
 
@@ -173,32 +173,50 @@ def handle_pdf_report(agent, logger):
         console.print("[bold red][-] PDF generation failed.[/bold red]")
 
 
+def _truncate_output(text, max_lines=60):
+    """Truncate long command output for clean display."""
+    if not text:
+        return text
+    lines = text.splitlines()
+    if len(lines) <= max_lines:
+        return text
+    shown = "\n".join(lines[:max_lines])
+    hidden = len(lines) - max_lines
+    return shown + f"\n[dim]  ... {hidden} more lines. Use 'export md' to see full output.[/dim]"
+
+
 def display_suggestion(suggestion, show_thinking=True):
-    """Display an AI suggestion with MITRE and chain-of-thought."""
-    # Thinking (chain-of-thought)
-    if show_thinking and suggestion.get('thinking'):
-        console.print(f"\n  [dim italic]💭 {suggestion['thinking']}[/dim italic]")
-
-    console.print(f"\n[bold yellow]  Explanation:[/bold yellow] {suggestion.get('explanation', 'N/A')}")
-    risk = suggestion.get('risk_level', 'None')
-    risk_color = {"Low": "green", "Medium": "yellow", "High": "red", "Critical": "bold red", "None": "dim"}.get(risk, "white")
-    console.print(
-        f"  [bold]Risk:[/bold] [{risk_color}]{risk}[/{risk_color}]  |  "
-        f"[bold]Tool:[/bold] [cyan]{suggestion.get('tool_used', 'N/A')}[/cyan]"
-    )
-
-    # MITRE ATT&CK
-    mitre = suggestion.get('mitre_id')
-    if mitre:
-        console.print(f"  [bold]MITRE:[/bold] [magenta]{mitre}[/magenta]")
-
+    """Display AI suggestion as a conversational inline message."""
+    thinking = suggestion.get('thinking', '')
+    explanation = suggestion.get('explanation', '')
     command = suggestion.get('command')
-    console.print(f"  [bold cyan]Command:[/bold cyan] {command or 'None'}\n")
+    risk = suggestion.get('risk_level', 'None')
+    tool = suggestion.get('tool_used', '')
+    mitre = suggestion.get('mitre_id', '')
+
+    # Chain-of-thought — subtle prefix
+    if show_thinking and thinking:
+        console.print(f"[dim]  ↳ {thinking}[/dim]")
+
+    # Conversational message
+    msg = f"[bold green]AI >[/bold green] {explanation}"
+    if risk and risk != 'None':
+        risk_color = {"Low": "green", "Medium": "yellow", "High": "red", "Critical": "bold red"}.get(risk, "white")
+        msg += f" ([{risk_color}]{risk} risk[/{risk_color}])"
+    if tool:
+        msg += f" — using [cyan]{tool}[/cyan]"
+    if mitre:
+        msg += f" [[magenta]{mitre}[/magenta]]"
+    console.print(msg)
+
+    if command:
+        console.print(f"  [bold cyan]$[/bold cyan] {command}")
+
     return command
 
 
 def store_findings(full_output, command, agent, db, cve_search, console):
-    """Extract and store findings from command output."""
+    """Extract and store findings from command output (silent)."""
     if not full_output.strip():
         return
     try:
@@ -206,6 +224,7 @@ def store_findings(full_output, command, agent, db, cve_search, console):
         db_data = json.loads(db_text.strip().replace('```json', '').replace('```', ''))
         for t in db_data.get('targets', []):
             db.add_target(t.get('ip'), t.get('hostname'), t.get('status'))
+        vuln_count = 0
         for p in db_data.get('ports', []):
             tid = db.add_target(p.get('ip'))
             if tid:
@@ -214,14 +233,12 @@ def store_findings(full_output, command, agent, db, cve_search, console):
                 version = p.get('version')
                 if version and service and service != 'unknown':
                     vulns = cve_search.search_cve(service, version)
-                    if vulns:
-                        console.print(f"  [bold red][!] {len(vulns)} CVE(s) for {service} {version}[/bold red]")
-                        for v in vulns:
-                            db.add_vulnerability(tid, None, v['id'], v['severity'], v['description'])
-                            console.print(f"      - {v['id']} [{v['severity']}]")
-        console.print("[dim]  DB updated.[/dim]")
-    except Exception as e:
-        console.print(f"[dim]  DB: {e}[/dim]")
+                    for v in vulns:
+                        db.add_vulnerability(tid, None, v['id'], v['severity'], v['description'])
+                        vuln_count += 1
+                        console.print(f"  [bold red][!] {v['id']} [{v['severity']}] — {service} {version}[/bold red]")
+    except Exception:
+        pass  # Silent — DB errors don't break the flow
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -712,14 +729,87 @@ def main():
                 run_autopilot(target, agent, local_exec, db, cve_search, logger)
             continue
 
+        # ── VulnScan ─────────────────────────────────────────
+        if cmd.startswith('vulnscan'):
+            vscan_target = user_input.split()[1] if len(user_input.split()) > 1 else current_target
+            if not vscan_target:
+                vscan_target = console.input("  [cyan]Target IP: [/cyan]").strip()
+            console.print(f"[bold red][!] Running vulnerability scan on {vscan_target}...[/bold red]")
+            console.print("[dim]  Running: nmap -sV --script vuln,auth,exploit,default[/dim]")
+            vuln_cmd = f"nmap -sV -sC --script vuln,auth,exploit -T4 --open {vscan_target}"
+            try:
+                stdout, stderr = local_exec.execute(vuln_cmd, timeout=300)
+                out = stdout or stderr or ""
+                if out.strip():
+                    console.print(f"\n[red]{_truncate_output(out, 80)}[/red]")
+                    # Also run searchsploit on found services
+                    console.print("\n[bold yellow][+] Checking searchsploit...[/bold yellow]")
+                    sp_out, _ = local_exec.execute(f"searchsploit --nmap {vscan_target} 2>/dev/null || echo 'searchsploit not available'")
+                    if sp_out and 'not available' not in sp_out:
+                        console.print(f"[yellow]{_truncate_output(sp_out, 30)}[/yellow]")
+                    with console.status("[bold red]  AI analyzing vulnerabilities...[/bold red]"):
+                        analysis = agent.get_suggestion(f"Analyze these vulnerability scan results for {vscan_target} and identify the most critical issues to exploit:\n{out[:3000]}")
+                    try:
+                        vuln_sug = json.loads(analysis.strip().replace('```json','').replace('```',''))
+                        display_suggestion(vuln_sug)
+                    except Exception:
+                        console.print(f"[dim]{analysis[:500]}[/dim]")
+                    store_findings(out, vuln_cmd, agent, db, cve_search, console)
+                else:
+                    console.print("[yellow]  No output. Target may be offline or all ports filtered.[/yellow]")
+            except FileNotFoundError:
+                console.print("[red]  nmap not found. Install: sudo apt install nmap[/red]")
+            except Exception as e:
+                console.print(f"[red]  Scan error: {e}[/red]")
+            continue
+
         # ── Scan (shortcut) ──────────────────────────────────
         if cmd.startswith('scan '):
             scan_target = user_input.split()[1] if len(user_input.split()) > 1 else current_target
-            if scan_target:
-                current_target = scan_target
-                agent.set_context("target", current_target)
-            user_input = f"perform a smart stealth scan on {scan_target or 'the target'} to discover open ports and services"
-            # fall through to AI handler below
+            if not scan_target:
+                console.print("[red]  Usage: scan <IP>[/red]")
+                continue
+            current_target = scan_target
+            agent.set_context("target", current_target)
+            console.print(f"[bold green][+] Scanning {scan_target}...[/bold green]")
+            # Direct robust scan — no AI intermediary for basic scan
+            scan_phases = [
+                ("Port Discovery",  f"nmap -sV -sC -T4 --open {scan_target}"),
+            ]
+            for phase_name, scan_cmd in scan_phases:
+                console.print(f"[dim]  [{phase_name}] {scan_cmd}[/dim]")
+                try:
+                    stdout, stderr = local_exec.execute(scan_cmd, timeout=120)
+                    out = stdout or ""
+                    if out.strip():
+                        console.print(f"\n[green]{_truncate_output(out, 60)}[/green]")
+                        store_findings(out, scan_cmd, agent, db, cve_search, console)
+                        # AI analysis of results
+                        with console.status("[bold green]  AI analysing scan...[/bold green]"):
+                            analysis_text = agent.analyze_output(scan_cmd, out[:3000])
+                        try:
+                            next_sug = json.loads(analysis_text.strip().replace('```json','').replace('```',''))
+                            console.print()
+                            display_suggestion(next_sug)
+                            confirm = console.input("[bold white]  Run it? (y/n/e=edit): [/bold white]").strip().lower()
+                            if confirm == 'e':
+                                next_sug['command'] = console.input("[bold cyan]  Edit: [/bold cyan]").strip()
+                                confirm = 'y'
+                            if confirm == 'y' and next_sug.get('command'):
+                                f_out, f_err = local_exec.execute(next_sug['command'])
+                                if f_out: console.print(f"[green]{_truncate_output(f_out)}[/green]")
+                                if f_err: console.print(f"[dim red]{_truncate_output(f_err, 20)}[/dim red]")
+                        except Exception:
+                            pass
+                    elif stderr and stderr.strip():
+                        console.print(f"[dim red]  {stderr[:300]}[/dim red]")
+                    else:
+                        console.print("[yellow]  No results. Target may be offline or ports filtered.[/yellow]")
+                except FileNotFoundError:
+                    console.print("[red]  nmap not found. Install: sudo apt install nmap[/red]")
+                except Exception as e:
+                    console.print(f"[red]  Scan error: {e}[/red]")
+            continue
 
         # ── Script Generator ─────────────────────────────────
         if cmd.startswith('write script') or cmd.startswith('generate script') or cmd.startswith('create script'):
@@ -819,14 +909,21 @@ def main():
 
             # Execute locally
             console.print("[dim]  Executing...[/dim]")
-            stdout, stderr = local_exec.execute(command)
+            try:
+                stdout, stderr = local_exec.execute(command)
+            except FileNotFoundError as fnf:
+                console.print(f"[red]  Command not found: {fnf}. Is the tool installed?[/red]")
+                continue
+            except Exception as exec_err:
+                console.print(f"[red]  Execution error: {exec_err}[/red]")
+                continue
 
             full_output = ""
             if stdout:
-                console.print(f"\n[green]{stdout}[/green]")
+                console.print(f"\n[green]{_truncate_output(stdout)}[/green]")
                 full_output += stdout
             if stderr:
-                console.print(f"\n[dim red]{stderr}[/dim red]")
+                console.print(f"\n[dim red]{_truncate_output(stderr, 20)}[/dim red]")
                 full_output += stderr
 
             logger.log("COMMAND_EXECUTION", full_output[:5000], {"command": command})

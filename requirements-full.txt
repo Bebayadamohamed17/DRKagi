@@ -1,0 +1,10 @@
+# ── Optional / Heavy features ─────────────────────────────
+# Install with: pip install -r requirements-full.txt
+
+# PDF reports
+reportlab
+
+# Web dashboard
+streamlit
+pandas
+pyvis
