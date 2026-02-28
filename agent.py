@@ -103,7 +103,6 @@ class PentestAgent:
             "  - SNMP community strings: snmpwalk -c public -v1 [ip]\n"
             "After EVERY scan: run searchsploit [service] [version] to find known exploits.\n\n"
 
-
             "EXPLOITATION:\n"
             "  msfconsole, msfvenom, evil-winrm, crackmapexec, exploitdb, shellter, beef\n"
             "  MSF example: msfconsole -q -x \"use [module]; set RHOSTS [ip]; run; exit\"\n\n"
