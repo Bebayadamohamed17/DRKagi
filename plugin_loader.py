@@ -53,7 +53,7 @@ def run(args, context):
     console = context["console"]
     console.print("[bold green][+] Hello from DRKagi Plugin System![/bold green]")
     console.print(f"[dim]  Args: {args}[/dim]")
-    console.print(f"[dim]  Mode: {context['mode']}[/dim]")
+    console.print(f"[dim]  Target: {context.get('target', 'not set')}[/dim]")
 '''
             with open(example_path, "w", encoding="utf-8") as f:
                 f.write(code)
@@ -113,6 +113,10 @@ def run(args, context):
                 plugin["run"](args, context)
                 return True
             except Exception as e:
-                context.get("console", print)(f"[red]Plugin error: {e}[/red]")
+                con = context.get("console")
+                if con:
+                    con.print(f"[red]Plugin error: {e}[/red]")
+                else:
+                    print(f"Plugin error: {e}")
                 return False
         return False

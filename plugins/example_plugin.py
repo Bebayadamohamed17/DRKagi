@@ -21,4 +21,4 @@ def run(args, context):
     console = context["console"]
     console.print("[bold green][+] Hello from DRKagi Plugin System![/bold green]")
     console.print(f"[dim]  Args: {args}[/dim]")
-    console.print(f"[dim]  Mode: {context['mode']}[/dim]")
+    console.print(f"[dim]  Target: {context.get('target', 'not set')}[/dim]")
