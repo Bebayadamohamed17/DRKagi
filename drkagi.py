@@ -809,8 +809,18 @@ def main():
 
         # ── Dashboard ────────────────────────────────────────
         if cmd in ['dashboard', 'web ui', 'gui']:
-            console.print("[bold green][+] Launching Dashboard...[/bold green]")
-            subprocess.Popen([sys.executable, "-m", "streamlit", "run", "dashboard.py", "--server.headless=true"], shell=True)
+            try:
+                subprocess.Popen(
+                    [sys.executable, "-m", "streamlit", "run", "dashboard.py",
+                     "--server.headless=true", "--server.port=8501"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
+                console.print("[bold green][+] Dashboard launched![/bold green]")
+                console.print("  [cyan]Open: http://localhost:8501[/cyan]")
+                console.print("  [dim]Ctrl+C in browser tab to stop.[/dim]")
+            except FileNotFoundError:
+                console.print("[red]  streamlit not installed.[/red]")
+                console.print("  [dim]Run: pip install streamlit pandas pyvis[/dim]")
             continue
 
         # ── PDF report ───────────────────────────────────────
