@@ -85,8 +85,17 @@ mkdir -p logs sessions profiles plugins vault
 echo -e "${GREEN}[+] Creating launch command...${NC}"
 sudo tee /usr/local/bin/drkagi > /dev/null << LAUNCHEOF
 #!/bin/bash
-cd $INSTALL_DIR
-source .venv/bin/activate
+INSTALL_DIR="$INSTALL_DIR"
+cd "\$INSTALL_DIR" || exit 1
+# Auto-recreate venv if missing (e.g. after git pull)
+if [ ! -f ".venv/bin/activate" ]; then
+    echo "[*] Recreating virtual environment..."
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt -q
+else
+    source .venv/bin/activate
+fi
 python3 drkagi.py "\$@"
 LAUNCHEOF
 sudo chmod +x /usr/local/bin/drkagi
