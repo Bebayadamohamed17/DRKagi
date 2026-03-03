@@ -56,9 +56,9 @@ DRKagi combines **80+ security tools** with **AI reasoning** to automate reconna
 ```bash
 curl -sL https://raw.githubusercontent.com/DRKagi/DRKagi/main/install.sh | bash
 ```
-"""
+```
 cd ~/DRKagi && git pull origin main && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt -q && drkagi
-"""
+```
 
 ### Option 2: Manual Install
 ```bash
