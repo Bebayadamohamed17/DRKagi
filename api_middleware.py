@@ -34,7 +34,7 @@ class APIMiddleware:
         # Last resort — single key
         if cfg.GROQ_API_KEY:
             return [cfg.GROQ_API_KEY]
-        raise ValueError("No Groq API keys found. Check config.py or set GROQ_API_KEY in .env")
+        raise ValueError("No AI API keys found. Check config.py or set API_KEY in .env")
 
     def get_client(self, strategy="least_used"):
         """Get a Groq client using a rotation strategy."""
@@ -98,10 +98,10 @@ class APIMiddleware:
                         self.mark_key_failed(current_key, "invalid_key")
                         continue
                     elif "403" in error_str or "access denied" in error_str:
-                        # Tor exit node blocked by Groq API
+                        # Tor exit node blocked
                         raise Exception(
-                            "AI Error: Groq API blocked this connection (403).\n"
-                            "  Cause: AnonSurf/Tor exit nodes are blocked by Groq.\n"
+                            "AI Error: AI Engine blocked this connection (403).\n"
+                            "  Cause: AnonSurf/Tor exit nodes are blocked by the AI service.\n"
                             "  Fix:   Use 'drkagi-anon' instead of 'drkagi' when AnonSurf is active.\n"
                             "         sudo drkagi-anon"
                         )
